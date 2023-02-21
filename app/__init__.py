@@ -22,7 +22,7 @@ def index():
     desc = re.compile("（[^（）]*報導）", re.UNICODE).sub("", desc)
 
     print("")
-    print("site:", preview.site)
+    print("site:", preview.site_name)
     print("title:", preview.title)
     print("description:", preview.description)
     print("image:", preview.image)
@@ -30,7 +30,7 @@ def index():
     return render_template(
         "index.html",
         form=request.form,
-        site=preview.site,
+        site=preview.site_name,
         title=title,
         title_width=80,
         title_font_size=28,
