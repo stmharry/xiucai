@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% macro form_textarea(text, value, id, rows) -%}
+<div class="form-group">
+    <label>{{ text }}</label>
+    <textarea id="{{ id }}" class="form-control" rows="{{ rows }}">{{ value }}</textarea>
+</div>
+{%- endmacro %}
+
+{% macro form_range(text, value, id) -%}
+<div class="row">
+    <label class="col-form-label col-3 text-right">{{ text }}</label>
+    <div class="col-9">
+        <input type="range" id="{{ id }}" class="form-control" value="{{ value }}">
+    </div>
+</div>
+{%- endmacro %}
+
+{% block content %}
+<div class="row justify-content-center my-3">
+    <div class="card col-12">
+        <div class="card-body">
+            <form action="{{ url_for('main.index') }}" method="POST">
+                <div class="form-group">
+                    <label for="url">URL</label>
+                    <input type="url" class="form-control" name="url" value="{{ form.url if form is defined }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center my-3">
+    <div class="card col-lg-6 col-md-12 col-sm-12">
+        <div class="card-body">
+            {{ form_textarea(text='Title',       value=title,           id='form-title',          rows=2) }}
+            {{ form_range   (text='Width (%)',   value=title_width,     id='form-title-width') }}
+            {{ form_range   (text='Size (px)',   value=title_font_size, id='form-title-font-size') }}
+            <hr>
+            {{ form_textarea(text='Description', value=desc,            id='form-desc',           rows=7) }}
+            {{ form_range   (text='Width (%)',   value=desc_width,      id='form-desc-width') }}
+            {{ form_range   (text='Size (px)',   value=desc_font_size,  id='form-desc-font-size') }}
+            <hr>
+            {{ form_textarea(text='Image',       value=image_url,       id='form-image-url',      rows=2) }}
+            {{ form_range   (text='Height (%)',  value=image_height,    id='form-image-height') }}
+            {{ form_range   (text='Width (%)',   value=image_width,     id='form-image-width') }}
+            <!--hr>
+            <button type="submit" id="form-submit" class="btn btn-primary">HTML2Canvas!</button-->
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-8 col-sm-12">
+        <div id="ig-story">
+            <div id="ig-story-background"></div>
+            <div id="ig-story-foreground">
+                <div id="ig-story-title" class="p-2 text-center">
+                    {{ title }}
+                </div>
+                <div id="ig-story-desc" class="p-2 text-justify">
+                    {{ desc }}
+                </div>
+                <div id="ig-story-image"></div>
+                <div id="ig-story-logo">
+                    {% if site %}
+                    <span class="badge badge-pill badge-secondary">
+                        {{ site }}
+                    </span>
+                    {% endif %}
+                    <span class="badge badge-pill badge-primary">
+                        #哈利實驗室
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="ig-story-container" class="col-lg-6 col-md-8 col-sm-12">
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+#ig-story {
+    width: 100%;
+    padding-top: 177.78%;
+}
+#ig-story-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: none;  /* auto-filled */
+    opacity: 0.7;
+    filter: blur(8px);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+#ig-story-foreground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+#ig-story-title {
+    margin: 20% auto 0 auto;
+    width: none;  /* auto-filled */
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: none;  /* auto-filled */
+    line-height: 130%;
+}
+#ig-story-desc {
+    margin: 2.5% auto 0 auto;
+    width: none;  /* auto-filled */
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.7);
+    font-size: none;  /* auto-filled */
+    color: white;
+    line-height: 130%;
+}
+#ig-story-image {
+    margin: 2.5% auto 0 auto;
+    width: none;  /* auto-filled */
+    height: none;  /* auto-filled */
+    background-image: none;  /* auto-filled */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+#ig-story-logo {
+    position: absolute;
+    bottom: 5%;
+    right: 8%;
+    font-size: large;
+    font-weight: 700;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.2.1/html2canvas.min.js"></script>
+
+<script>
++ function($) {
+    $.fn.syncWith = function($targets, css = null) {
+        var $source = $(this);
+
+        var syncNow = function() {
+            if ($source.is('input, textarea')) {
+                var $val = $source.val();
+            } else if ($source.is('div')) {
+                var $val = $source.text();
+            }
+
+            $targets.each( function() {
+                var $target = $(this);
+
+                if (!!css) {
+                    switch (css) {
+                        case 'height':
+                        case 'width':
+                            $val = $val + '%';
+                            break;
+                        case 'background-image':
+                            $val = 'url("' + $val + '")';
+                            break;
+                        case 'font-size':
+                            $val = $val + 'px';
+                            break;
+                    }
+                    // console.log('Setting', css, 'to', $val);
+                    $target.css(css, $val);
+
+                } else if ($target.is('input, textarea')) {
+                    $target.val($val);
+                } else if ($target.is('div')) {
+                    $target.text($val);
+                }
+            });
+        };
+
+        $(document).ready(syncNow);
+        $source.on('input change', syncNow);
+
+        return this;
+    };
+
+    $('#form-title')          .syncWith($('#ig-story-title'));
+    $('#form-title-width')    .syncWith($('#ig-story-title'), 'width');
+    $('#form-title-font-size').syncWith($('#ig-story-title'), 'font-size');
+
+    $('#form-desc')           .syncWith($('#ig-story-desc'));
+    $('#form-desc-width')     .syncWith($('#ig-story-desc'), 'width');
+    $('#form-desc-font-size') .syncWith($('#ig-story-desc'), 'font-size');
+
+    $('#form-image-url')      .syncWith($('#ig-story-background'), 'background-image');
+
+    $('#form-image-url')      .syncWith($('#ig-story-image'), 'background-image');
+    $('#form-image-height')   .syncWith($('#ig-story-image'), 'height');
+    $('#form-image-width')    .syncWith($('#ig-story-image'), 'width');
+}(jQuery);
+
++ function($) {
+    throw 'debug';
+
+    $('#form-submit')
+    .on('click', function(e) {
+        html2canvas(
+            $('#ig-story').get(0),
+            { allowTaint: true, useCORS: false, logging: true }
+        ).then(function (canvas) {
+            $('#ig-story-container').append(canvas);
+        })
+    });
+}(jQuery);
+</script>
+{% endblock %}
